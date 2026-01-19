@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "start": "node index.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "@fastify/swagger": "^9.6.1",
+    "@fastify/swagger-ui": "^5.2.4",
+    "fastify": "^5.6.2",
+    "mongodb": "^7.0.0",
+    "octokit": "^5.0.5",
+    "pino-pretty": "^13.1.2"
+  }
+}

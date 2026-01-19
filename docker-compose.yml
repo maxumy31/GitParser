@@ -1,0 +1,183 @@
+services:
+  mongo-gl:
+    image: mongo:latest
+    container_name: mongo-gl
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-gl-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-gh:
+    image: mongo:latest
+    container_name: mongo-gh
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./mongo-gh-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-preprocessed:
+    image: mongo:latest
+    container_name: mongo-preprocessed
+    ports:
+      - "27019:27017"
+    volumes:
+      - ./mongo-pre-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:latest
+    container_name: postgre-data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER_NAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_NAME} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin4:
+      image: dpage/pgadmin4:latest
+      container_name: pgadmin
+      restart: always
+      environment:
+        PGADMIN_DEFAULT_EMAIL: admin@admin.com
+        PGADMIN_DEFAULT_PASSWORD: root
+      ports:
+      - "5050:80"
+
+  mongo-gl-express:
+    image: mongo-express:latest
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo-gl
+      ME_CONFIG_MONGODB_PORT: 27017
+    depends_on:
+      mongo-gl:
+        condition: service_healthy
+
+  mongo-gh-express:
+    image: mongo-express:latest
+    ports:
+      - "8082:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo-gh
+      ME_CONFIG_MONGODB_PORT: 27017
+    depends_on:
+      mongo-gh:
+        condition: service_healthy
+
+  mongo-preprocessed-express:
+    image: mongo-express:latest
+    ports:
+      - "8083:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo-preprocessed
+      ME_CONFIG_MONGODB_PORT: 27017
+    depends_on:
+      mongo-preprocessed:
+        condition: service_healthy
+  
+  gh-service:
+    build: ./RepositoryParser/.
+    container_name: gh-parser
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo-gh:27017
+      - SERVICE_PORT=${GITHUB_SERVICE_PORT}
+      - TOKEN=${TOKEN:-0}
+    depends_on:
+      mongo-gh:
+        condition: service_healthy
+    ports:
+      - 8090:8090
+    healthcheck:
+      test: ["CMD-SHELL", "curl", "http://localhost:8090/health"]
+      interval: 20s
+      timeout: 20s
+      retries: 3
+      start_period: 15s
+
+  preprocessing-service:
+    build: ./Preprocessing/.
+    container_name: preprocessing-service
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo-preprocessed:27017
+      - GH_SERVICE_URI=http://gh-service:${GITHUB_SERVICE_PORT}
+      - SERVICE_PORT=${PROCESSING_SERVICE_PORT}
+    depends_on:
+      gh-service:
+        condition: service_healthy
+
+  recommendation-service:
+    build: ./RecommendationSystem/.
+    container_name: recommendation-service
+    environment:
+      MONGO_URI: mongodb://mongo-preprocessed:27017
+      MONGO_DB_NAME: db
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_USER: ${POSTGRES_USER_NAME}
+      PG_PASSWORD: ${POSTGRES_PASSWORD}
+      PG_DB: ${POSTGRES_DB}
+    depends_on:
+      mongo-preprocessed:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  server-1-service:
+    build: ./Server/.
+    container_name: server-service
+    ports:
+      - 8888:4000
+    volumes:
+      - ./Server:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_USER: ${POSTGRES_USER_NAME}
+      PG_PASSWORD: ${POSTGRES_PASSWORD}
+      PG_DB: ${POSTGRES_DB}
+      SERVICE_PORT: ${AGGREGATOR_1_SERVICE_PORT}
+    depends_on:
+      mongo-gh:
+        condition: service_healthy
+
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - $OUT_PORT:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - server-1-service
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+
