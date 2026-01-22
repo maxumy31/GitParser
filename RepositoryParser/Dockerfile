@@ -4,4 +4,4 @@ COPY package*.json ./
 RUN npm install
 RUN apk add --no-cache curl
 COPY . .
-CMD ["npm","start"]
+CMD ["npm","run","start_with_hotreload"]

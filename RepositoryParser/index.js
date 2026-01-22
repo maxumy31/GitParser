@@ -1,8 +1,8 @@
 import Fastify from 'fastify'
 import db from "./db.js"
-import gh from "./gh.js"
 import gen from "./dateGenerator.js"
 import { handleGetKey, markAsProcessed } from './endpoints.js'
+import  modules from './ModuleLoader.js'
 
 const queryCollection = "query"
 const visitedCollection = "visited"
@@ -21,37 +21,49 @@ const fastify = Fastify({
   }
 })
 
-await fastify.register(import('@fastify/swagger'), {
-  openapi: {
-    info: {
-      title: 'GitHub Data Collector Service',
-      version: '1.0.0',
-      description: 'Сервис для сбора и предварительной обработки данных репозиториев с GitHub'
-    },
-    servers: [
-      {
-        url: `http://localhost:${process.env.SERVICE_PORT || 3000}`,
-        description: 'Локальное развитие'
-      }
-    ]
-  }
-})
-
-// Подключаем Swagger UI (веб-интерфейс)
-await fastify.register(import('@fastify/swagger-ui'), {
-  routePrefix: '/docs',
-  uiConfig: {
-    docExpansion: 'list',
-    deepLinking: false
-  },
-  staticCSP: true,
-  transformStaticCSP: (header) => header,
-  transformSpecification: (swaggerObject, request, reply) => {
-    return swaggerObject
-  }
-})
 
 const generator = gen.NewDateGenerator(await GetDateState())
+
+const moduleName = 'github'
+const repoModule = modules.LoadRepositoryModule(moduleName)
+const langModule = modules.LoadLanguageModule()
+
+
+
+
+async function GetBatch(date) {
+    const formatedDate = gen.TimeToStringQueryFormat(date)
+    fastify.log.info(`Fetching repos from date ${formatedDate} started`)
+    const per_page = 100
+    const starThreshold = 50
+    const fetched = await repoModule.FetchRepos(formatedDate,1,per_page,starThreshold,langModule.GetSupportedLanguages())
+    //Мы не парсим страницы, так как мы все равно указываем количество репозиториев на страницу с избытком
+    //Если что можно повысить порог количества звезд
+
+    //Найти репозитории -> Убедиться что они соответствуют нашим требованиям(парсятся) -> Добавить
+    fastify.log.info(`Fetching repos from date ${formatedDate} page 1`)
+    let batch = []
+    for(const repo of fetched) {
+        const repoLanguage = repo.language
+        const repoOwner = repo.owner.login
+        const repoName = repo.name
+        const topics = repo.topics
+        if(!topics || topics.length == 0) continue
+        const deps = await langModule.FindDependencies(repoLanguage,repoModule,repoOwner,repoName)
+        if(!deps || deps.length == 0) continue
+        repo.repository_id = repo.id
+        delete repo.id
+        const result = {
+            data : repo,
+            dependencies: deps,
+            foundAt: new Date(),
+            usedData:false,
+        }
+        batch.push(result)
+    }
+    return batch
+}
+
 
 fastify.get('/', async function handler(req, reply) {
     try {
@@ -71,28 +83,12 @@ fastify.delete('/:id', async function handler(req, reply) {
   return await markAsProcessed(req, reply, fastify)
 })
 
-
-function ParseGithubItem(response) {
-    return {
-        fullname : response.full_name,
-        description: response.description,
-        created_at : new Date(response.created_at),
-        updated_at : new Date(response.updated_at),
-        stars : response.stargazers_count,
-        language:response.language,
-        forks: response.forks_count,
-        topics : response.topics,
-        used_in_request : false
-    }
-}
-
 function WriteBatch(batch) {
-    const names = batch.map(data => data.fullname).map(fname => {return {name : fname}})
-    db.insertBatch(visitedCollection,names)
-    const themeBatch = batch.filter(data => data.dependencies && data.dependencies != 0 && 
-        data.topics && data.topics.length != 0)
-    if (themeBatch.length > 0) {
-        db.insertBatch(queryCollection,themeBatch)
+    db.insertBatch(visitedCollection,batch.map(repo => {return {full_name: repo.data.full_name}}))
+    db.insertBatch(queryCollection,batch)
+    console.log(`Inserted ${batch.length} repositories`)
+    for(const b of batch) {
+        console.log(`Inserted : ${b.data.full_name}`)
     }
 }
 
@@ -114,7 +110,7 @@ async function GetDateState() {
     }
 }
 
-async function FetchAllRepos(date) {
+/*async function FetchAllRepos(date) {
     const formatedDate = gen.TimeToStringQueryFormat(date)
     fastify.log.info(`Fetching repos from date ${formatedDate} started`)
     const per_page = 100
@@ -138,18 +134,13 @@ async function FetchAllRepos(date) {
     }
     fastify.log.info(`Fetching repos from date ${formatedDate} finished`)
     return batch
-}
+}*/
 
 async function ProcessDay() {
     try {
         const day = generator.Next()
         fastify.log.info(`Processing day ${day.toISOString()}`)
-        let batch = await FetchAllRepos(day)
-        for(let i = 0; i < batch.length;i++) {
-            const [org,name] = batch[i].fullname.split("/")
-            batch[i].dependencies = await gh.ParseProjectFiles(org,name)
-        }
-        batch = batch.filter(date => date.dependencies.length > 0)
+        const batch = await GetBatch(day)
         if (batch.length > 0) {
             WriteBatch(batch)
         }
@@ -176,7 +167,6 @@ async function StartProcessing() {
 
 
 try {
-    const fetchInterval = 1000
     await fastify.listen({ port: process.env.SERVICE_PORT, host:'0.0.0.0'})
     StartProcessing()
 

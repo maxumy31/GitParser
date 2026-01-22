@@ -1,5 +1,4 @@
 import db from "./db.js"
-import gh from "./gh.js"
 import { ObjectId } from 'mongodb'
 
 const queryCollection = "query"
