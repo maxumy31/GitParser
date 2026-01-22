@@ -1,5 +1,9 @@
 import NewGithubParser from "./Modules/GithubParser.js"
 import NewNPMModule from "./Modules/NPM.js"
+import NewMavenModule from "./Modules/Maven.js"
+import NewGradleModule from "./Modules/Gradle.js"
+import NewPipModule from "./Modules/PIP.js"
+import NewCargoModule from "./Modules/Cargo.js"
 
 function LoadRepositoryModule(moduleName) {
     const modules = {
@@ -15,7 +19,11 @@ function LoadRepositoryModule(moduleName) {
 
 function LoadLanguageModule() {
     const modules = [
-        NewNPMModule()
+        NewNPMModule(),
+        NewMavenModule(),
+        NewGradleModule(),
+        NewPipModule(),
+        NewCargoModule(),
     ];
 
     // Language : [BuildSystem]
@@ -40,7 +48,7 @@ function LoadLanguageModule() {
     for (const [language, buildSystems] of supported) { 
         console.log(`   ${language.toUpperCase()}:`);
         for(const build of buildSystems) {
-            console.log(`   └── ${build.BuildSystem}\n`);
+            console.log(`   └── ${build.BuildSystem}`);
         }
     }
 
@@ -55,10 +63,23 @@ function LoadLanguageModule() {
     async function FindDependencies(language,repositoryModule,owner,name) {
         const TakeTree = async (path = "/") => await repositoryModule.GetRepositoryTree(owner,name,path)
         const TakeFile = async (path) => await repositoryModule.GetFileContent(owner,name,path)
+        async function RecursiveBFSearch(name,depth=1,path = "") {
+            const root = await TakeTree(path)
+            const hits = root.filter(r => r.name == name)
+            if(hits && hits.length >= 1) {return hits[0]}
+            if(depth <= 0) {return null}
+            else{
+                const dirs = root.filter(r => r.type == "dir")
+                for(const d of dirs) {
+                    const result = await RecursiveBFSearch(name,depth-1, d.path)
+                    if(result != null) {return result}
+                }
+            }
+        }
         language = language.toLowerCase()
         if(!supported.has(language)) throw "language not implemented"
         for(const system of supported.get(language)) {
-            const result = await system.ProcessRepository(TakeTree,TakeFile)
+            const result = await system.ProcessRepository(TakeTree,TakeFile,RecursiveBFSearch)
             if(result) return result
         }
     }

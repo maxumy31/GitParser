@@ -2,17 +2,11 @@ function NewNPMModule() {
     const SupportedLanguage = "javascript"
     const BuildSystem = "NPM"
 
-async function ParseItem(TakeTree, ReadFile) {
+async function ParseItem(TakeTree, ReadFile,BFS) {
     const dependencies = new Set();
-    const root = await TakeTree()
-    const configFiles = [
-        "package.json",
-    ]
-
-    const files = root.filter(file => configFiles.includes(file.name))
-    if (!files || files.length == 0) return null
-    const fileName = files[0].name
-    const content = await ReadFile(fileName)
+    const file = await BFS("package.json")
+    if(!file) {return null}
+    const content = await ReadFile(file.path)
     const jsonContent = JSON.parse(content)
     const depTypes = ["dependencies","peerDependencies","devDependencies"]
     const found = jsonContent

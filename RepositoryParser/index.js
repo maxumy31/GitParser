@@ -27,7 +27,7 @@ const generator = gen.NewDateGenerator(await GetDateState())
 const moduleName = 'github'
 const repoModule = modules.LoadRepositoryModule(moduleName)
 const langModule = modules.LoadLanguageModule()
-
+//console.log(await langModule.FindDependencies("rust",repoModule,"est31","cargo-udeps"))
 
 
 
@@ -49,6 +49,7 @@ async function GetBatch(date) {
         const repoName = repo.name
         const topics = repo.topics
         if(!topics || topics.length == 0) continue
+        fastify.log.info(`Searching for dependencies for repository ${repoOwner}/${repoName}.Language = ${repoLanguage}`)
         const deps = await langModule.FindDependencies(repoLanguage,repoModule,repoOwner,repoName)
         if(!deps || deps.length == 0) continue
         repo.repository_id = repo.id
@@ -88,7 +89,7 @@ function WriteBatch(batch) {
     db.insertBatch(queryCollection,batch)
     console.log(`Inserted ${batch.length} repositories`)
     for(const b of batch) {
-        console.log(`Inserted : ${b.data.full_name}`)
+        console.log(`Inserted : ${b.data.full_name}. Language : ${b.data.language}`)
     }
 }
 
@@ -110,31 +111,6 @@ async function GetDateState() {
     }
 }
 
-/*async function FetchAllRepos(date) {
-    const formatedDate = gen.TimeToStringQueryFormat(date)
-    fastify.log.info(`Fetching repos from date ${formatedDate} started`)
-    const per_page = 100
-    const starThreshold = 10
-    let batch = []
-    const first = await gh.FetchRepos(formatedDate,1,per_page,starThreshold)
-    const total = first.data.total_count
-    const pages = Math.ceil(total / per_page)
-
-    fastify.log.info(`Fetching repos from date ${formatedDate} page 1`)
-    for(const f of first.data.items) {
-        const parsed = ParseGithubItem(f)
-        batch.push(parsed)
-    }
-    
-    for(let i = 2; i <= pages;i++) {
-        fastify.log.info(`Fetching repos from date ${formatedDate} page ${i}`)
-        const page = await gh.FetchRepos(formatedDate,i,per_page,starThreshold)
-        const parsed = ParseGithubItem(page)
-        batch.push(parsed)
-    }
-    fastify.log.info(`Fetching repos from date ${formatedDate} finished`)
-    return batch
-}*/
 
 async function ProcessDay() {
     try {

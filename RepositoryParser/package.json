@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "node index.js",
-    "start_with_hotreload":"nodemon --legacy-watch index.js"
+    "start_with_hotreload": "nodemon --legacy-watch index.js"
   },
   "type": "module",
   "dependencies": {
@@ -11,6 +11,7 @@
     "mongodb": "^7.0.0",
     "nodemon": "^3.1.11",
     "octokit": "^5.0.5",
-    "pino-pretty": "^13.1.2"
+    "pino-pretty": "^13.1.2",
+    "xml-js": "^1.6.11"
   }
 }
