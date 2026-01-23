@@ -12,7 +12,6 @@ const logger = pino({
     }
   }
 });
-const topicsCollection = "topics"
 
 
 const errorDelayTime = 5 * 60 * 1000
@@ -23,24 +22,24 @@ StartPolling()
 
 async function StartPolling() {
     while (true) {
-        logger.info(`Fetching next repo`)
+        logger.info(`Fetching next repository`)
         const resp = await axios.get(`${GH_SERVICE_URI}/`)
-        logger.info("Received repo:", JSON.stringify(resp.data, null, 2));
         if (resp.data.error) {
-            logger.info(`Got error from request`)
-            logger.info(`Will continue work in ${errorDelayTime}ms`)
-            setTimeout(StartPolling,errorDelayTime)
-            break
+          logger.info(`All repositories processed`)
+          logger.info(`Will continue work in ${errorDelayTime}ms`)
+          setTimeout(StartPolling,errorDelayTime)
+          break
         }
         if (!resp.data) {
-            logger.error(`Unknown error! ${resp}`)
-            continue
+          logger.error(`Unknown error! ${resp}`)
+          continue
         }
-        const tranformed = calc.TransformInput(resp.data.repo)
-        db.insertBatch(topicsCollection,tranformed)
+        logger.info(`Received repository ${resp.data.data.full_name}`);
+        const tranformed = calc.TransformInput(resp.data)
+        db.insertData("topics",tranformed)
         logger.info("New topic batch inserted")
         logger.info("Request to update inserted repo")
-        const resp2 = await axios.delete(`${GH_SERVICE_URI}/${resp.data.repo._id}`)
+        const resp2 = await axios.delete(`${GH_SERVICE_URI}/${resp.data._id}`)
         logger.info("Request to update inserted repo finished")
     }
 }
