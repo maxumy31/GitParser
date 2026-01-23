@@ -1,0 +1,6 @@
+<label class="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] block mb-4">Популярные тэги</label>
+<div class="flex flex-wrap gap-2">
+    <% tags.forEach(tag => { %>
+        <button class="px-2 py-1 border border-zinc-200 rounded text-xs text-zinc-500 hover:border-indigo-500 hover:text-indigo-600 transition-all"><%= tag %></button>
+    <%}) %>
+</div>

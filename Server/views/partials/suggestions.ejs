@@ -5,8 +5,8 @@
             hx-vals='{"q": "<%= row.name %>"}'
             hx-target="#table-container"
             hx-indicator="#loader"
-            onclick="document.getElementById('main-search').value='<%= row.name %>'; document.getElementById('search-results').innerHTML=''">
-            
+            hx-on:click="document.getElementById('main-search').value = '<%= row.name %>'; document.getElementById('search-results').innerHTML = '';">
+
             <div class="flex items-center gap-3">
                 <i class="fas fa-hashtag text-slate-600 group-hover:text-indigo-400 text-xs"></i>
                 <span class="text-sm text-slate-300 group-hover:text-white font-medium"><%= row.name %></span>

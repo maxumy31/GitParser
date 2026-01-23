@@ -1,0 +1,40 @@
+<div class="flex items-center justify-center gap-2 mt-8 py-4">
+    <div class="flex flex-row p-1 bg-white ring-1 ring-slate-200 rounded-xl shadow-sm overflow-hidden">
+        <% 
+           const maxDisplay = 20; 
+           const lastPage = Math.min(pagination.pages, maxDisplay); 
+        %>
+
+        <% for(let i = 1; i <= lastPage; i++) { %>
+            <% if (i === pagination.current) { %>
+                <div class="min-w-[36px] h-9 flex items-center justify-center bg-indigo-600 rounded-lg shadow-md shadow-indigo-200 mx-0.5">
+                    <span class="text-white text-sm font-bold"><%= i %></span>
+                </div>
+            <% } else { %>
+                <button 
+                    hx-post="/search"
+                    hx-include="#main-search, #sidebar-filters-form"
+                    hx-vals='{"page": <%= i %>}'
+                    hx-target="#table-container"
+                    hx-indicator="#loader"
+                    class="min-w-[36px] h-9 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-all duration-200 mx-0.5 active:scale-90"
+                >
+                    <%= i %>
+                </button>
+            <% } %>
+        <% } %>
+
+        <% if (pagination.pages > maxDisplay) { %>
+            <div class="min-w-[36px] h-9 flex items-center justify-center text-slate-300">...</div>
+            <button 
+                hx-post="/search"
+                hx-include="#main-search, #sidebar-filters-form"
+                hx-vals='{"page": <%= pagination.pages %>}'
+                hx-target="#table-container"
+                class="min-w-[36px] h-9 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-50"
+            >
+                <%= pagination.pages %>
+            </button>
+        <% } %>
+    </div>
+</div>

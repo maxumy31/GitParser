@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LibRec — Рекомендации библиотек</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .htmx-indicator {
+        display:none;
+        }
+        .htmx-request .htmx-indicator {
+            display:inline;
+        }
+        .htmx-settling img {
+            opacity: 0;
+        }
+        .htmx-request.main-content {
+            opacity: 0.5;
+            transition: opacity 200ms ease-in;
+        }
+    </style>
+</head>
+<body class="bg-zinc-50 text-zinc-900 antialiased" hx-boost="true">
+
+    <nav class="border-b border-zinc-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <a href="#" class="text-xl font-bold tracking-tight text-indigo-600">Lib<span class="text-zinc-900">Rec</span></a>
+                <div class="hidden md:flex gap-6 text-sm font-medium text-zinc-500">
+                    <span class="text-zinc-900 underline decoration-indigo-500 underline-offset-4">Главная</span>
+                    <a href="/" class="hover:text-zinc-900 transition-colors">Поиск</a>
+                </div>
+            </div>
+            <div class="text-xs mono bg-zinc-100 px-3 py-1 rounded-full border border-zinc-200 text-zinc-600">
+                v1.0.4-beta
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-20">
+        
+        <section class="mb-20">
+            <h1 class="text-5xl font-extrabold tracking-tight mb-6 max-w-3xl">
+                Умные рекомендации библиотек на основе анализа <span class="text-indigo-600">Open Source</span>.
+            </h1>
+            <p class="text-lg text-zinc-600 max-w-2xl mb-10 leading-relaxed">
+                Мы анализируем использование зависимостей в реальных проектах. 
+                Выбирайте инструменты, опираясь на опыт сообщества, а не на звёзды в GitHub.
+            </p>
+            <div class="flex gap-4">
+                <button class="bg-zinc-900 text-white px-8 py-3 rounded-lg font-medium hover:bg-zinc-800 transition-all shadow-lg shadow-zinc-200"
+                        hx-get="search-page" hx-target="body" hx-push-url="true" hx-swap="innerHTML transition:true">
+                    Начать поиск
+                </button>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+            <div class="bg-white p-8 rounded-2xl border border-zinc-200 shadow-sm">
+                <p class="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-2">Обработано</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-4xl font-bold mono tracking-tighter"><%= indexData.processedCount %></span>
+                    <span class="text-zinc-400 text-sm italic">репозиториев</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl border border-zinc-200 shadow-sm md:col-span-2">
+                <p class="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-4">Поддерживаемые языки</p>
+                <% //Код для подбора цвета языка
+                getLanguageColor = function(name) {
+                    const colors = ['blue', 'emerald', 'orange', 'indigo', 'red', 'amber', 'rose', 'cyan', 'violet'];
+                    let hash = 0;
+                    for (let i = 0; i < name.length; i++) {
+                        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                    }
+                    const index = Math.abs(hash) % colors.length;
+                    return colors[index];
+                }
+                %>
+                <div class="flex flex-wrap gap-3">
+                    <% indexData.languages.forEach(lang => { %>
+                    <%- include("partials/language_block.ejs", { 
+                        name: lang, 
+                        color: getLanguageColor(lang) 
+                    }) %>
+                <% }); %>
+                </div>
+            </div>
+        </div>
+
+        <section>
+            <h2 class="text-2xl font-bold tracking-tight mb-8">Популярные тэги</h2>
+            <div class="flex flex-wrap gap-2">
+                <% indexData.tags.forEach(tag => { %>
+                    <%- include("partials/popular_tag_block.ejs", { 
+                        name: tag, 
+                    }) %>
+                <% }); %>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-zinc-200 mt-20 py-12 bg-white">
+        <div class="max-w-7xl mx-auto px-6 text-sm text-zinc-500 flex justify-between items-center">
+            <p>© 2024 LibRec Project. <span class="mono">// keep coding</span></p>
+            <div class="flex gap-6 font-medium">
+                <a href="#" class="hover:text-zinc-900">GitHub</a>
+                <a href="#" class="hover:text-zinc-900">API Documentation</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

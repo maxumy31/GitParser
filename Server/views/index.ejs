@@ -30,7 +30,7 @@
         
         <main class="flex-1 overflow-y-auto bg-white p-12">
             <div id="table-container">
-                <%- include('partials/table', { tag: null, libraries: initialData }) %>
+                <%- include('partials/table', { tag: null, libraries: initialData , pagination: {total: 0, current:1, pages: 1}}) %>
             </div>
         </main>
     </div>

@@ -1,0 +1,9 @@
+<label class="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] block mb-4">Источник</label>
+<div class="space-y-1">
+    <% sources.forEach(src => {%>
+    <label class="flex items-center gap-2 p-2 rounded-md hover:bg-zinc-50 cursor-pointer group">
+        <input type="checkbox" checked class="w-4 h-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500">
+        <span class="text-sm text-zinc-600 group-hover:text-zinc-900 transition-colors"><%= src%></span>
+    </label>
+    <% }) %>
+</div>

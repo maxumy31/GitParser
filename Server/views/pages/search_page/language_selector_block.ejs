@@ -1,0 +1,6 @@
+<label class="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] block mb-4">Язык</label>
+<select class="w-full bg-zinc-50 border border-zinc-200 rounded-lg p-2 text-sm outline-none focus:border-indigo-500 transition-all">
+    <% languages.forEach(element => {%>
+        <option><%- element %></option>
+    <%})%>
+</select>

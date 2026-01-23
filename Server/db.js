@@ -12,4 +12,27 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-export default pool;
+/**
+ * Универсальная функция для исполнения SQL запросов
+ * @param {string} text - SQL запрос (с плейсхолдерами $1, $2...)
+ * @param {array} params - Массив значений для подстановки (защита от SQL-инъекций)
+ */
+async function executeQuery(text, params = []) {
+  const start = Date.now();
+  try {
+    const res = await pool.query(text, params);
+    const duration = Date.now() - start;
+    
+    // Логируем выполнение в консоль (полезно при разработке)
+    console.log(`[SQL] Executed in ${duration}ms | Rows: ${res.rowCount}`);
+
+    //console.log(`Result = ${res.rows.map(r => JSON.stringify(r))}`)
+    
+    return res.rows; // Возвращаем только данные
+  } catch (err) {
+    console.error('[SQL Error]:', err.message);
+    throw err;
+  }
+}
+
+export default executeQuery
