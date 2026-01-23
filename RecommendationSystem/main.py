@@ -17,7 +17,6 @@ def run():
     }
     
     db = DatabaseManager(pg_config)
-    db.refresh_lookups()
     
     engine = AnalyticsEngine(
         os.getenv("MONGO_URI"), 
@@ -27,11 +26,15 @@ def run():
 
     while True:
         count = engine.process_batch(size=1000)
+        
         if count == 0:
-            logging.info("All data processed. Sleeping...")
+            logging.info("Новых данных нет. Запускаем пересчет Trust Score...")
+            engine.run_scoring()
+            
+            logging.info("Все данные обработаны и рейтинги обновлены. Спим 60 секунд...")
             time.sleep(60)
         else:
-            logging.info(f"Processed {count} documents")
+            logging.info(f"Обработано {count} документов. Продолжаем цикл...")
 
 if __name__ == "__main__":
     run()
