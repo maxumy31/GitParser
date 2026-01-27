@@ -1,0 +1,47 @@
+<div class="mt-12 flex items-center justify-center gap-2 border-t border-zinc-100 pt-8">
+
+    <button hx-get="/search-page/search-query?page=1" hx-target="#search-results"
+        hx-include="#language_selector, #search-input"
+        class="p-2 text-zinc-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        title="Предыдущая страница">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+    </button>
+
+    <div class="flex items-center gap-1">
+        <button hx-get="/search-page/search-query?page=1" hx-target="#search-results"
+            hx-include="#language_selector, #search-input"
+            class="min-w-[40px] h-10 rounded-xl text-sm font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
+            1
+        </button>
+
+        <button
+            class="min-w-[40px] h-10 rounded-xl text-sm font-bold bg-indigo-600 text-white shadow-md shadow-indigo-200 cursor-default">
+            2
+        </button>
+
+        <button hx-get="/search-page/search-query?page=3" hx-target="#search-results"
+            hx-include="#language_selector, #search-input"
+            class="min-w-[40px] h-10 rounded-xl text-sm font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
+            3
+        </button>
+
+        <span class="px-2 text-zinc-300">...</span>
+
+        <button hx-get="/search-page/search-query?page=12" hx-target="#search-results"
+            hx-include="#language_selector, #search-input"
+            class="min-w-[40px] h-10 rounded-xl text-sm font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
+            12
+        </button>
+    </div>
+
+    <button hx-get="/search-page/search-query?page=3" hx-target="#search-results"
+        hx-include="#language_selector, #search-input"
+        class="p-2 text-zinc-400 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        title="Следующая страница">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+    </button>
+</div>

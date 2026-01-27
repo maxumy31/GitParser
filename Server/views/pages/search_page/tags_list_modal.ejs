@@ -1,0 +1,11 @@
+<% tags.forEach(tag => { %>
+    <button hx-get="/search_page/tags_list"
+            hx-vals='{"tag":"<%= tag %>"}'
+            hx-include="#active-tags-block"
+            hx-target="#active-tags-block"
+            hx-swap="beforeend"
+            class="w-full text-left p-3 rounded-xl border border-zinc-100 hover:border-indigo-200 hover:bg-indigo-50 transition-all flex items-center justify-between group">
+        <span class="text-sm font-medium text-zinc-700 group-hover:text-indigo-600"><%= tag %></span>
+        <span class="text-[10px] text-zinc-400 italic">Нажмите, чтобы добавить</span>
+    </button>
+<% }) %>

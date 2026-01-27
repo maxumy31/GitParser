@@ -1,0 +1,20 @@
+<div id="active-stack-block">
+    <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] block mb-3">Выбранный стек</label>
+    <div id="active-stack-list" class="flex flex-wrap gap-2">
+        <% activeStack.forEach(stack => { %>
+        <div class="flex items-center gap-1.5 bg-indigo-600 text-white px-2 py-1 rounded-md shadow-sm border border-indigo-500">
+            <span class="text-xs font-semibold mono"><%-stack%></span>
+            <button class="hover:text-indigo-200 transition-colors" title="Удалить"
+                    hx-get="/search-page/active_stack_block/remove" hx-include="#active-stack-block" hx-target="#active-stack-block"
+                    hx-vals='{"toDelete":"<%-stack%>"}'>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <input type="hidden" value="<%-stack%>" name="activeStack"/>
+        </div>
+        <% }) %>
+        
+        <p class="text-xs text-zinc-400 italic hidden">Стек пуст</p>
+    </div>
+</div>

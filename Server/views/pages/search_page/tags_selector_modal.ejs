@@ -1,0 +1,51 @@
+<dialog id="tags-modal" class="rounded-2xl shadow-2xl p-0 w-full max-w-xl min-h-[500px] backdrop:bg-zinc-900/50 backdrop:backdrop-blur-sm">
+    <div class="p-6 bg-white">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-zinc-900">Поиск тегов</h3>
+            <button onclick="this.closest('dialog').close()" class="text-zinc-400 hover:text-zinc-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="relative mb-6">
+            <input type="text" 
+                   name="tag_name"
+                   placeholder="Введите название тега..."
+                   hx-get="/search_page/tags_list_modal"
+                   hx-trigger="keyup changed delay:300ms"
+                   hx-target="#tags-results"
+                   class="w-full bg-zinc-50 border border-zinc-200 rounded-xl py-3 pl-4 pr-10 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-sm">
+        </div>
+
+        <div id="tags-results" class="space-y-2 max-h-[3/4] overflow-y-auto pr-2">
+            <p class="text-xs text-zinc-400 text-center py-4">Начните вводить...</p>
+        </div>
+    </div>
+</dialog>
+<style>
+    /* Стили для скроллбара в модалке */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e4e4e7; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+    
+    dialog::backdrop {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+<script>
+let modal = document.getElementById('tags-modal');
+//Для закрытия модалки при клике вне границ
+modal.addEventListener('mousedown', (event) => {
+    // Если целью события является сам тег <dialog>, 
+    // значит пользователь кликнул на бэкдроп (фон)
+    if (event.target === modal) {
+        modal.close();
+    }
+});
+</script>

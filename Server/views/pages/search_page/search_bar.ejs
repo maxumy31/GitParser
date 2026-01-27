@@ -1,0 +1,19 @@
+<div class="bg-white border border-zinc-200 rounded-2xl p-1.5 mb-8 shadow-sm focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
+    <div class="relative">
+        <input 
+            id="searchbar"
+            name="userSearch"
+            hx-get="/search_page/search_trigger"
+            hx-swap="none"
+            hx-trigger="keyup changed delay:300ms"
+            hx-target="this"
+            type="text" 
+            placeholder="Поиск по названию..." 
+            class="w-full bg-transparent py-3 pl-4 pr-12 outline-none font-medium text-zinc-900 placeholder:text-zinc-400">
+        <div class="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+    </div>
+</div>

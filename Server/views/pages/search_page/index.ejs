@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск — LibRec</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/multi-swap.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .htmx-indicator {
+            display: none;
+        }
+
+        .htmx-request .htmx-indicator {
+            display: inline;
+        }
+
+        .htmx-settling img {
+            opacity: 0;
+        }
+
+        .htmx-request.main-content {
+            opacity: 0.5;
+            transition: opacity 200ms ease-in;
+        }
+    </style>
+</head>
+
+<body class="bg-white text-zinc-900 antialiased" hx-indicator=".loading-bar">
+<style>
+    .loading-bar {
+        /* Начальное состояние: невидимый */
+        opacity: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        z-index: 9999;
+        pointer-events: none;
+        background: linear-gradient(90deg, 
+            transparent, 
+            #4f46e5, 
+            #818cf8, 
+            #4f46e5, 
+            transparent
+        );
+        background-size: 200% 100%;
+        
+        /* Исчезновение: происходит мгновенно (0s) */
+        transition: opacity 0.1s ease-out;
+    }
+
+    .htmx-request.loading-bar {
+        /* Появление: плавно (0.4s) и с задержкой (0.3s) */
+        /* Задержка нужна, чтобы на сверхбыстрых запросах полоска вообще не моргала */
+        opacity: 1;
+        transition: opacity 0.4s ease-in;
+        transition-delay: 0.3s; 
+        
+        animation: slide 1.5s infinite linear;
+    }
+
+    @keyframes slide {
+        from { background-position: 200% 0; }
+        to { background-position: -200% 0; }
+    }
+</style>
+    <div class="loading-bar"></div>
+    <nav class="border-b border-zinc-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <a href="/" class="text-xl font-bold tracking-tight text-indigo-600">Lib<span
+                        class="text-zinc-900">Rec</span></a>
+                <div class="flex gap-6 text-sm font-medium text-zinc-400">
+                    <a href="/" class="hover:text-zinc-900 transition-colors">Главная</a>
+                    <span class="text-zinc-900 underline decoration-indigo-500 underline-offset-4">Поиск</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <div class="flex flex-col lg:flex-row gap-12">
+
+            <div class="flex-grow">
+                <%- include("search_bar.ejs",{}) %>
+                <div hx-get="/search-page/search_results_list" hx-trigger="load"
+                    hx-include="#language_selector, #sources_container input" hx-swap="outerHTML">
+                </div>
+            </div>
+            <%- include("tags_selector_modal",{}) %>
+            <aside class="w-full lg:w-72 flex-shrink-0 space-y-8">
+                <section class="bg-zinc-50 border border-zinc-200 rounded-2xl p-4 space-y-6">
+                    <%- include("sidebar/active_data/stack_container", {activeStack: [] }) %>
+                    <%- include("sidebar/active_data/tags_container", {activeTags: []}) %>
+                </section>
+                <section class="px-2 space-y-8">
+                    <%- include("sidebar/source_selector_block.ejs",{sources:searchPageData.sources}) %>
+                    <%- include("sidebar/language_selector_block.ejs",{languages:searchPageData.languages}) %>
+                    <%- include("sidebar/popular_tags_block.ejs",{tags:searchPageData.popularTags}) %>
+                </section>     
+            </aside>
+
+        </div>
+    </main>
+</body>
+
+</html>
