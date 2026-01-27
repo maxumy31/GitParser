@@ -6,7 +6,7 @@ from engine import AnalyticsEngine
 from dotenv import load_dotenv
 
 load_dotenv()
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def run():
     pg_config = {
@@ -17,24 +17,17 @@ def run():
     }
     
     db = DatabaseManager(pg_config)
-    
-    engine = AnalyticsEngine(
-        os.getenv("MONGO_URI"), 
-        os.getenv("MONGO_DB_NAME"), 
-        db
-    )
+    engine = AnalyticsEngine(os.getenv("MONGO_URI"), os.getenv("MONGO_DB_NAME"), db)
 
     while True:
         count = engine.process_batch(size=1000)
         
         if count == 0:
-            logging.info("Новых данных нет. Запускаем пересчет Trust Score...")
+            logging.info("Данные синхронизированы. Пересчет рейтингов...")
             engine.run_scoring()
-            
-            logging.info("Все данные обработаны и рейтинги обновлены. Спим 60 секунд...")
             time.sleep(60)
         else:
-            logging.info(f"Обработано {count} документов. Продолжаем цикл...")
+            logging.info(f"Обработано {count} документов...")
 
 if __name__ == "__main__":
     run()
