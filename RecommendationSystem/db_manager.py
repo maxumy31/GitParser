@@ -17,13 +17,13 @@ class DatabaseManager:
 
     def get_library_id(self, name, lang_id, source_id):
         query = """
-            INSERT INTO libraries (name, language_id, source_id)
-            VALUES (%s, %s, %s)
+            INSERT INTO libraries (name, language_id)
+            VALUES (%s, %s)
             ON CONFLICT (name, language_id) DO UPDATE SET name=EXCLUDED.name
             RETURNING id
         """
         with self.conn.cursor() as cur:
-            cur.execute(query, (name.lower().strip(), lang_id, source_id))
+            cur.execute(query, (name.lower().strip(), lang_id))
             return cur.fetchone()[0]
 
     def get_topic_id(self, name):
