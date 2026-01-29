@@ -1,0 +1,45 @@
+<body class="bg-white text-zinc-900 antialiased">
+    <nav class="border-b border-zinc-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <a href="/" class="text-xl font-bold tracking-tight text-indigo-600">Lib<span class="text-zinc-900">Rec</span></a>
+                <div class="flex gap-6 text-sm font-medium text-zinc-400">
+                    <a hx-get="/" hx-target="body" hx-push-url="true" hx-swap="innerHTML transition:true">Главная</a>
+                    <a hx-get="/search-page" hx-target="body" hx-push-url="true" hx-swap="innerHTML transition:true">Поиск</a>
+                    <span class="text-zinc-900 underline decoration-indigo-500 underline-offset-4">Библиотека</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div class="lg:col-span-2 space-y-10">
+                <section>
+                    <div class="flex items-center gap-4 mb-4">
+                        <h1 class="text-4xl font-bold text-zinc-900"><%= data.library %></h1>
+                    </div>
+                </section>
+
+                <section>
+                    <%- include("search_results_list",{
+                        searchResult : {names : data.repositories, count:data.total},
+                        pagesCount:data.total_pages,page:data.active_page,name:data.library,language:data.language}) 
+                    %>
+                </section>
+            </div>
+
+            <div class="space-y-8">
+                <section class="bg-zinc-50 border border-zinc-200 rounded-2xl p-6">
+                    <%- include("sidebar/metadata",{index_count:data.index_count,language:data.language}) %>
+                </section>
+                <section class="px-2">
+                    <%- include("sidebar/tags",{tags:data.tags}) %>
+                </section>
+                <section class="px-2">
+                    <%- include("sidebar/libs",{libs:data.libs,language:data.language}) %>
+                </section>
+            </div>
+        </div>
+    </main>
+</body>

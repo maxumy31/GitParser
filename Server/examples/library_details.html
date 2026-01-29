@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Библиотека fastify — LibRec</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="bg-white text-zinc-900 antialiased">
+    <nav class="border-b border-zinc-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <a href="/" class="text-xl font-bold tracking-tight text-indigo-600">Lib<span class="text-zinc-900">Rec</span></a>
+                <div class="flex gap-6 text-sm font-medium text-zinc-400">
+                    <a href="/" class="hover:text-zinc-900 transition-colors">Главная</a>
+                    <a href="/search" class="hover:text-zinc-900 transition-colors">Поиск</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        <nav class="flex text-sm text-zinc-500 mb-8">
+            <ol class="flex items-center space-x-2">
+                <li><a href="/" class="hover:text-indigo-600">Главная</a></li>
+                <li><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"></path></svg></li>
+                <li class="text-zinc-900 font-medium">Детали библиотеки</li>
+            </ol>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div class="lg:col-span-2 space-y-10">
+                <section>
+                    <div class="flex items-center gap-4 mb-4">
+                        <h1 class="text-4xl font-bold text-zinc-900">fastify</h1>
+                        <span class="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-full border border-indigo-100 uppercase tracking-wider">v4.24.3</span>
+                    </div>
+                    <p class="text-lg text-zinc-600 leading-relaxed max-w-2xl">
+                        Быстрый и эффективный веб-фреймворк для Node.js, ориентированный на минимальные накладные расходы и мощную архитектуру плагинов.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-bold text-zinc-900 mb-6 flex items-center gap-3">
+                        Используется в репозиториях
+                        <span class="px-2 py-0.5 bg-zinc-100 text-zinc-500 text-xs rounded-full font-mono">124</span>
+                    </h2>
+                    <div class="grid gap-4">
+                        <div class="group p-5 border border-zinc-100 rounded-2xl hover:border-indigo-200 hover:bg-indigo-50/30 transition-all flex justify-between items-center">
+                            <div>
+                                <h4 class="font-semibold text-zinc-900 group-hover:text-indigo-600 transition-colors">delvedor/find-my-way</h4>
+                                <p class="text-xs text-zinc-500 mt-1">Путь: <span class="mono">/packages/core/package.json</span></p>
+                            </div>
+                            <a href="/repo-details" class="text-xs font-bold text-zinc-400 group-hover:text-indigo-600 uppercase tracking-widest">Перейти</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="space-y-8">
+                <section class="bg-zinc-50 border border-zinc-200 rounded-2xl p-6">
+                    <h3 class="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-6">Статистика LibRec</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center pb-3 border-b border-zinc-200/60">
+                            <span class="text-sm text-zinc-600">Индексаций</span>
+                            <span class="font-bold text-zinc-900 mono">1,240</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-zinc-200/60">
+                            <span class="text-sm text-zinc-600">Тип</span>
+                            <span class="text-xs font-bold text-indigo-600 uppercase">Web Framework</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="px-2">
+                    <h3 class="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-4">Связанные теги</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-white border border-zinc-200 rounded-lg text-xs font-medium text-zinc-600 hover:border-indigo-400 cursor-pointer">#backend</span>
+                        <span class="px-3 py-1 bg-white border border-zinc-200 rounded-lg text-xs font-medium text-zinc-600 hover:border-indigo-400 cursor-pointer">#performance</span>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

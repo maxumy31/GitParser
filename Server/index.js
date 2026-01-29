@@ -23,7 +23,7 @@ fastify.get('/', async (req, reply) => {
         const tags = await queries.GetPopularTags()
         const languages = await queries.GetSupportedLanguages()
         const processedCount = await queries.GetProcessedRepositoriesCount()
-        return reply.view('pages/index_page/index.ejs', { indexData: {tags:tags,languages:languages,processedCount:processedCount} });
+        return reply.view('pages/skeleton.ejs', { indexData: {tags:tags,languages:languages,processedCount:processedCount} });
     } catch (err) {
         fastify.log.error(err);
         return "<html>ERROR</html>"
@@ -37,7 +37,12 @@ fastify.get('/search-page', async (req, reply) => {
         const tags = await queries.GetPopularTags()
         const languages = await queries.GetSupportedLanguages()
         const sources = await queries.GetSupportedSources()
-        return reply.view('pages/search_page/index.ejs', { searchPageData: {popularTags:tags,languages:languages, sources:sources} });
+        const isHtmx = req.headers['hx-request'];
+        if(isHtmx) {
+            return reply.view('pages/search_page/index.ejs', { searchPageData: {popularTags:tags,languages:languages, sources:sources} });
+        } else {
+            return reply.view('pages/search_page/index_full.ejs', { searchPageData: {popularTags:tags,languages:languages, sources:sources} });
+        }
     } catch (err) {
         fastify.log.error(err);
         return "<html>ERROR</html>"
@@ -91,8 +96,10 @@ fastify.get("/search_page/stack_list", async (req, reply) => {
     try {
         reply.header("HX-Trigger-After-Swap","updateSearchResult")
         const selectedStack = [].concat(req.query.activeStack || []);
-        if(selectedStack.indexOf(req.query.stack) != -1) {return reply.code(204).send("")}
-        return reply.view('pages/search_page/sidebar/active_data/tags_list.ejs', {activeStack:[req.query.stack]});
+        const toInclude = req.query.toInclude
+        if(selectedStack.indexOf(toInclude) != -1) {return reply.code(204).send("")}
+        selectedStack.push(toInclude)
+        return reply.view('pages/search_page/sidebar/active_data/stack_list.ejs', {activeStack:[selectedStack]});
     } catch (err) {
         fastify.log.error(err);
         return "<html>ERROR</html>"
@@ -141,22 +148,29 @@ fastify.get('/search_page/search_trigger', async (req, reply) => {
 
 fastify.get('/search-page/search_results_list', async (req, reply) => {
     try {
-        console.log(req.query, "/search-page/search_results_list");
+        console.log(req.query, "/search-page/search_results_list")
 
-        const selectedSources = [].concat(req.query.sources || []);
+        const selectedSources = [].concat(req.query.sources || [])
         const selectedLanguage = req.query.language;
-        const selectedTags = [].concat(req.query.activeTags || []);
-        const selectedDeps = [].concat(req.query.activeStack || []);
+        const selectedTags = [].concat(req.query.activeTags || [])
+        const selectedDeps = [].concat(req.query.activeStack || [])
         const search = req.query.userSearch
+        const page = req.query.page || 1
+        
 
         if (!selectedLanguage || selectedSources.length === 0) {
-            return ""; 
+            return reply.view('pages/search_page/search_results_list.ejs', { 
+            searchResult: {
+                count: 0,
+                names: []
+            }, 
+            page:1,
+            pagesCount:0
+            });
         }
 
-        const limit = 10;
-        const offset = 0;
-
-        console.log(selectedDeps,selectedTags,selectedSources)
+        const limit = 8;
+        const offset = 0 + limit * (page-1);
 
         const res = await queries.GetFullRecommendations(selectedLanguage, selectedDeps, selectedTags, selectedSources, limit, offset,search);
 
@@ -164,7 +178,9 @@ fastify.get('/search-page/search_results_list', async (req, reply) => {
             searchResult: {
                 count: res.total, 
                 names: res.data.map(r => r.name) 
-            } 
+            }, 
+            page:page,
+            pagesCount:Math.ceil(res.total/limit)
         });
 
     } catch (err) {
@@ -174,22 +190,45 @@ fastify.get('/search-page/search_results_list', async (req, reply) => {
 });
 
 
-fastify.get('/search-page/active_tags', async (req, reply) => {
-    try {
-        console.log(req.query)
-        const selectedSources = [].concat(req.query.sources || []);
-        if(selectedSources.length == 0) {//Ничего не указано в источниках
-            return ""                    //Ничего не возвращаем
-        }
-        const selectedLanguage = req.query.language
-        const res = await queries.GetRecommendationsByStack(["fastapi"],selectedLanguage,selectedSources)
-        return reply.view('pages/search_page/search_result_block.ejs', { searchResult: {count:1488,names:res.map(r => r.name)} });
+fastify.get('/library_page', async (req, reply) => {
+    console.log(req.query, "/library_page")
+    const isHtmx = req.headers['hx-request'];
+    const libName = req.query.library || ''
+    const language = req.query.language || ''
+    const page = req.query.page || 1
+    const limit = 9
+    const offset = limit*(page-1)
+    const relatedLimit = 8
 
+    if (libName === "") {return reply.code(204).send("")}
+    if (language === "") {return reply.code(204).send("")}
+    const libMetadata = await queries.GetLibraryMetadata(libName,language,['github'],relatedLimit)
+    const repos = await queries.GetRepositoriesByLib(libName,language,['github'],limit,offset)
+    console.log(repos)
+    const data = { data : {
+            library:libName,
+            language:language,
+            index_count:libMetadata.total,
+            total_pages:11,
+            total:100,
+            active_page:page,
+            repositories:repos.map(r => r.full_name),
+            tags:libMetadata.related_topics,
+            libs:libMetadata.related_libraries
+        }}
+    try {
+        if(isHtmx) {
+            return reply.view('pages/library_page/index.ejs', data);
+        } else {
+            return reply.view('pages/library_page/index_full.ejs', data);
+        }
     } catch (err) {
         fastify.log.error(err);
-        return "<html>ERROR</html>"
+        return reply.code(500).send("ERROR");
     }
 });
+
+
 
 const start = async () => {
     try {

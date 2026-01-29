@@ -39,13 +39,15 @@
     }
 </style>
 <script>
-let modal = document.getElementById('tags-modal');
-//Для закрытия модалки при клике вне границ
-modal.addEventListener('mousedown', (event) => {
-    // Если целью события является сам тег <dialog>, 
-    // значит пользователь кликнул на бэкдроп (фон)
-    if (event.target === modal) {
-        modal.close();
-    }
-});
+{
+    let modal = document.getElementById('tags-modal');
+    //Для закрытия модалки при клике вне границ
+    modal.addEventListener('mousedown', (event) => {
+        // Если целью события является сам тег <dialog>, 
+        // значит пользователь кликнул на бэкдроп (фон)
+        if (event.target === modal) {
+            modal.close();
+        }
+    });
+}
 </script>

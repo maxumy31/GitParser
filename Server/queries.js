@@ -26,7 +26,7 @@ const GetPopularTags = async () => {
         JOIN repo_topics rt ON t.id = rt.topic_id
         GROUP BY t.id, t.name
         ORDER BY usage_count DESC
-        LIMIT 40;
+        LIMIT 25;
     `, []);
     return rows.map(row => row.name)
 };
@@ -156,5 +156,125 @@ async function GetTagHint(partial, selectedTags = []) {
     return await executeQuery(sql, params);
 };
 
+
+async function GetRepositoriesByLib(library, language, sources, limit, offset) {
+    if (!language) throw new Error("Language is required");
+    if (!library) throw new Error("Library is required");
+    if (!limit) throw new Error("Limit is required");
+    if (!offset) offset = 0
+    if (!sources) throw new Error("Sources are required");
+    if (sources.length == 0) return []
+
+    const params = [
+        library,
+        language,
+        sources,
+        limit,
+        offset
+    ];
+
+    const sql = `
+        SELECT 
+            r.full_name,
+            r.stargazers_count,
+            r.calculated_weight as contribution_weight,
+            r.updated_at as insert_date
+        FROM libraries l
+        JOIN repo_libraries rl ON l.id = rl.library_id
+        JOIN repositories r ON rl.repo_id = r.id
+        JOIN data_sources ds ON r.source_id = ds.id
+        WHERE l.name = $1
+        AND l.language_id = (SELECT id FROM languages WHERE name = $2 LIMIT 1)
+        AND ds.name = ANY ($3)
+        ORDER BY r.calculated_weight DESC
+        LIMIT $4 OFFSET $5;
+    `;
+
+    return await executeQuery(sql, params);
+};
+
+
+async function GetLibraryMetadata(library, language, sources, relatedLimit = 5) {
+    if (!language) throw new Error("Language is required");
+    if (!library) throw new Error("Library is required");
+    if (!sources) throw new Error("Sources are required");
+    if (sources.length === 0) return null;
+
+    const params = [
+        library.toLowerCase(),
+        language.toLowerCase(),
+        sources.map(s => s.toLowerCase()),
+        relatedLimit
+    ];
+
+    const sql = `
+        WITH target_lib AS (
+            -- Данные о самой библиотеке
+            SELECT id FROM libraries 
+            WHERE name = $1 
+              AND language_id = (SELECT id FROM languages WHERE name = $2 LIMIT 1)
+            LIMIT 1
+        ),
+        filtered_repos AS (
+            -- Репозитории, использующие библиотеку в рамках источников
+            SELECT r.id, r.pushed_at
+            FROM repo_libraries rl
+            JOIN repositories r ON rl.repo_id = r.id
+            JOIN data_sources ds ON r.source_id = ds.id
+            WHERE rl.library_id = (SELECT id FROM target_lib)
+              AND ds.name = ANY($3)
+        )
+        SELECT 
+            COUNT(fr.id)::int as total,
+            
+            -- N ближайших библиотек (сопутствующий стек)
+            COALESCE((
+                SELECT ARRAY_AGG(alt_l.name) FROM (
+                    SELECT l_other.name, COUNT(*) as cnt
+                    FROM repo_libraries rl_other
+                    JOIN libraries l_other ON rl_other.library_id = l_other.id
+                    WHERE rl_other.repo_id IN (SELECT id FROM filtered_repos)
+                      AND l_other.id != (SELECT id FROM target_lib)
+                    GROUP BY l_other.name
+                    ORDER BY cnt DESC
+                    LIMIT $4
+                ) alt_l
+            ), '{}') as related_libraries,
+
+            -- N ближайших тегов (контекст использования)
+            COALESCE((
+                SELECT ARRAY_AGG(alt_t.name) FROM (
+                    SELECT t_other.name, COUNT(*) as cnt
+                    FROM repo_topics rt_other
+                    JOIN topics t_other ON rt_other.topic_id = t_other.id
+                    WHERE rt_other.repo_id IN (SELECT id FROM filtered_repos)
+                    GROUP BY t_other.name
+                    ORDER BY cnt DESC
+                    LIMIT $4
+                ) alt_t
+            ), '{}') as related_topics
+
+        FROM filtered_repos fr
+        LEFT JOIN repo_topics rt ON fr.id = rt.repo_id
+        LEFT JOIN topics t ON rt.topic_id = t.id;
+    `;
+
+    const result = await executeQuery(sql, params);
+
+    if (!result[0] || result[0].total_mentions === 0) {
+        return null
+        /*return {
+            total_mentions: 0,
+            last_detected_pushed_at: null,
+            added_to_system_at: null,
+            associated_topics: [],
+            top_related_libraries: [],
+            top_related_topics: []
+        };*/
+    }
+
+    return result[0];
+}
+
 export default { GetPopularTags, GetSupportedLanguages, GetProcessedRepositoriesCount, 
-    GetSupportedSources, GetFullRecommendations, GetTagHint };
+    GetSupportedSources, GetFullRecommendations, GetTagHint, GetRepositoriesByLib, GetLibraryMetadata};

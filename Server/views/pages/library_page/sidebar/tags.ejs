@@ -1,0 +1,9 @@
+<h3 class="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-4">Связанные теги</h3>
+<div class="flex flex-wrap gap-2">
+    <% tags.forEach(element => { %>
+        <span class="px-3 py-1 bg-white border border-zinc-200 rounded-lg 
+                    text-xs font-medium text-zinc-600 hover:border-indigo-400 
+                    cursor-pointer"> <%= element %>
+        </span>
+    <% }) %>
+</div>

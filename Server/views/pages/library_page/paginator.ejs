@@ -3,7 +3,7 @@
         const displayCount = 11
         const count = pagesCount == 0 ? 1 : pagesCount
         let pagesArr = []
-        const displayHalf = Math.ceil(displayCount/2)
+        const displayHalf = (displayCount-1)/2
         if(activePage - displayHalf < 0) { // 1 >2 3 4 5 6...
             pagesArr = Array.from({length: Math.min(displayCount,count)}, (_, i) => i + 1)
         } else if(activePage + displayHalf > count) {// ... 6 7 8 9 >10 11
@@ -25,11 +25,10 @@
             </button>
         <% }  else { %>
         <button 
-            hx-get="/search-page/search_results_list"
-            hx-vals='{"page":"<%=elt%>"}'
-            hx-target="#search-result-block"
+            hx-get="/library_page"
+            hx-vals='{"page":"<%=elt%>","language":"<%= language %>","library":"<%= name %>"}'
             hx-swap="outerHTML"
-            hx-include="#language_selector, #sources_container input, #stack-container, #active-tags-block, #searchbar"
+            hx-target="body"
             class="min-w-[40px] h-10 rounded-xl text-sm font-semibold text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-all">
             <%= elt %>
         </button>
