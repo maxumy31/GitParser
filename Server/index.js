@@ -204,13 +204,13 @@ fastify.get('/library_page', async (req, reply) => {
     if (language === "") {return reply.code(204).send("")}
     const libMetadata = await queries.GetLibraryMetadata(libName,language,['github'],relatedLimit)
     const repos = await queries.GetRepositoriesByLib(libName,language,['github'],limit,offset)
-    console.log(repos)
+    const total_count = repos[0].total_count || 0
     const data = { data : {
             library:libName,
             language:language,
             index_count:libMetadata.total,
-            total_pages:11,
-            total:100,
+            total_pages:Math.ceil(total_count/limit),
+            total:total_count,
             active_page:page,
             repositories:repos.map(r => r.full_name),
             tags:libMetadata.related_topics,
@@ -222,6 +222,38 @@ fastify.get('/library_page', async (req, reply) => {
         } else {
             return reply.view('pages/library_page/index_full.ejs', data);
         }
+    } catch (err) {
+        fastify.log.error(err);
+        return reply.code(500).send("ERROR");
+    }
+});
+
+
+fastify.get('/library_page/search_results', async (req, reply) => {
+    console.log(req.query, "/library_page/search_results")
+    const libName = req.query.library || ''
+    const language = req.query.language || ''
+    const page = req.query.page || 1
+    const limit = 9
+    const offset = limit*(page-1)
+
+    if (libName === "") {return reply.code(204).send("")}
+    if (language === "") {return reply.code(204).send("")}
+    const repos = await queries.GetRepositoriesByLib(libName,language,['github'],limit,offset)
+    const total_count = repos[0].total_count || 0
+    try {
+        const data = {
+                name:libName,
+                language:language,
+                pagesCount:Math.ceil(total_count/limit),
+                page:page,
+                searchResult: {
+                    names:repos.map(r => r.full_name),
+                    count:total_count
+                }
+        }
+
+    return reply.view('pages/library_page/search_results_list.ejs', data)
     } catch (err) {
         fastify.log.error(err);
         return reply.code(500).send("ERROR");

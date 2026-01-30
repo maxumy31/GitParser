@@ -145,6 +145,7 @@ async function StartProcessing() {
 try {
     await fastify.listen({ port: process.env.SERVICE_PORT, host:'0.0.0.0'})
     StartProcessing()
+    //console.log("СБОР ДАННЫХ НЕАКТИВЕН!")
 
 } catch (err) {
     fastify.log.error(`Server crashed with error ${err}`)

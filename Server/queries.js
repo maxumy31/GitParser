@@ -161,7 +161,7 @@ async function GetRepositoriesByLib(library, language, sources, limit, offset) {
     if (!language) throw new Error("Language is required");
     if (!library) throw new Error("Library is required");
     if (!limit) throw new Error("Limit is required");
-    if (!offset) offset = 0
+    if (offset === undefined || offset === null) offset = 0
     if (!sources) throw new Error("Sources are required");
     if (sources.length == 0) return []
 
@@ -178,7 +178,8 @@ async function GetRepositoriesByLib(library, language, sources, limit, offset) {
             r.full_name,
             r.stargazers_count,
             r.calculated_weight as contribution_weight,
-            r.updated_at as insert_date
+            r.updated_at as insert_date,
+            COUNT(*) OVER()::int as total_count
         FROM libraries l
         JOIN repo_libraries rl ON l.id = rl.library_id
         JOIN repositories r ON rl.repo_id = r.id

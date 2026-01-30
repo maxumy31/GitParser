@@ -1,5 +1,4 @@
-<body class="bg-white text-zinc-900 antialiased">
-    <div hx-indicator=".loading-bar"></div>
+<body class="bg-white text-zinc-900 antialiased" hx-indicator=".loading-bar">
 <style>
     .loading-bar {
         opacity: 0;
@@ -35,7 +34,7 @@
                 <a href="/" class="text-xl font-bold tracking-tight text-indigo-600">Lib<span
                         class="text-zinc-900">Rec</span></a>
                 <div class="flex gap-6 text-sm font-medium text-zinc-400">
-                    <a class="hover:text-zinc-900 transition-colors" 
+                    <a class="hover:text-zinc-900 transition-colors cursor-pointer" 
                     hx-get="/" hx-target="body" hx-push-url="true" hx-swap="innerHTML transition:true">Главная</a>
                     <span class="text-zinc-900 underline decoration-indigo-500 underline-offset-4">Поиск</span>
                 </div>

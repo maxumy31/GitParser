@@ -1,6 +1,6 @@
 // calculations.js
 
-function TransformInput(doc) {
+function TransformInput(doc,source = "github") {
     const repo = doc.data;
     
     const stats = {
@@ -22,7 +22,8 @@ function TransformInput(doc) {
         stats: stats,
         repo_full_name: repo.full_name,
         language: repo.language.toLowerCase(),
-        processed: false
+        processed: false,
+        source :source
     };
 }
 

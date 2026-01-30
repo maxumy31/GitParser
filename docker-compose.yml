@@ -101,6 +101,9 @@ services:
   gh-service:
     build: ./RepositoryParser/.
     container_name: gh-parser
+    volumes:
+      - ./RepositoryParser:/app
+      - /app/node_modules
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongo-gh:27017
@@ -121,6 +124,9 @@ services:
   preprocessing-service:
     build: ./Preprocessing/.
     container_name: preprocessing-service
+    volumes:
+      - ./Preprocessing:/app
+      - /app/node_modules
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://mongo-preprocessed:27017

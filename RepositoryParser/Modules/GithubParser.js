@@ -6,7 +6,6 @@ function NewGithubParser() {
     async function FetchRepos(time,page=1,per_page=20,starThreshold,languages = ["JavaScript"]) {
         const query = `${languages.map((old) => "language:" + old).join("+")} 
             fork:false created:${time} stars:>=${starThreshold}`;
-        console.log(query,"query")
         const response = await octokit.rest.search.repos({
         q: query,
         per_page: per_page,

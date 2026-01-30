@@ -75,6 +75,7 @@ function LoadLanguageModule() {
                     if(result != null) {return result}
                 }
             }
+            return null
         }
         language = language.toLowerCase()
         if(!supported.has(language)) throw "language not implemented"

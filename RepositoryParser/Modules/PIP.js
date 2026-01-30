@@ -3,14 +3,14 @@ function NewPipModule() {
     const SupportedLanguage = "python"
     const BuildSystem = "pip"
 
-async function ParseItem(TakeTree, ReadFile,BFS) {
-    const file = await BFS("requirements.txt")
-    if(!file) {return null}
+    async function ParseItem(TakeTree, ReadFile,BFS) {
+        const file = await BFS("requirements.txt")
+        if(!file) {return null}
 
-    const content = await ReadFile(file.path)
+        const content = await ReadFile(file.path)
 
-    return ParseRequirementsTxt(content)
-}
+        return ParseRequirementsTxt(content)
+    }
 
     return {
         ProcessRepository:ParseItem,

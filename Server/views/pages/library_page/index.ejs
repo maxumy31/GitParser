@@ -1,11 +1,40 @@
-<body class="bg-white text-zinc-900 antialiased">
+<body class="bg-white text-zinc-900 antialiased" hx-indicator=".loading-bar">
+<style>
+    .loading-bar {
+        opacity: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        z-index: 9999;
+        pointer-events: none;
+        background: linear-gradient(90deg, transparent, #4f46e5, #818cf8, #4f46e5, transparent);
+        background-size: 200% 100%;
+        transition: opacity 0.1s ease-out;
+    }
+
+    .htmx-request.loading-bar {
+        opacity: 1;
+        transition: opacity 0.4s ease-in;
+        transition-delay: 0.3s; 
+        
+        animation: slide 1.5s infinite linear;
+    }
+
+    @keyframes slide {
+        from { background-position: 200% 0; }
+        to { background-position: -200% 0; }
+    }
+</style>
+    <div class="loading-bar"></div>
     <nav class="border-b border-zinc-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-8">
                 <a href="/" class="text-xl font-bold tracking-tight text-indigo-600">Lib<span class="text-zinc-900">Rec</span></a>
                 <div class="flex gap-6 text-sm font-medium text-zinc-400">
-                    <a hx-get="/" hx-target="body" hx-push-url="true" hx-swap="innerHTML transition:true">Главная</a>
-                    <a hx-get="/search-page" hx-target="body" hx-push-url="true" hx-swap="innerHTML transition:true">Поиск</a>
+                    <a hx-get="/" hx-target="body" hx-push-url="true" hx-swap="innerHTML transition:true" class="cursor-pointer">Главная</a>
+                    <a hx-get="/search-page" hx-target="body" hx-push-url="true" hx-swap="innerHTML transition:true" class="cursor-pointer">Поиск</a>
                     <span class="text-zinc-900 underline decoration-indigo-500 underline-offset-4">Библиотека</span>
                 </div>
             </div>
