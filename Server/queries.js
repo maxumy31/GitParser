@@ -1,11 +1,12 @@
-import executeQuery from "./db.js";
-import Knex from 'knex';
+import Knex from "knex";
 
 const knex = Knex({
-  client: 'pg'
+  client: "pg"
 });
 
-const GetSupportedLanguages = async () => {
+export default function createRepositoryAPI(executeQuery) {
+
+  const GetSupportedLanguages = async () => {
     const rows = await executeQuery(`
         SELECT l.name, r_counts.population
         FROM (
@@ -16,10 +17,12 @@ const GetSupportedLanguages = async () => {
         JOIN languages l ON l.id = r_counts.language_id
         ORDER BY population DESC;
     `, []);
-    return rows.map(row => row.name)
-};
 
-const GetPopularTags = async () => {
+    return rows.map(row => row.name);
+  };
+
+
+  const GetPopularTags = async () => {
     const rows = await executeQuery(`
         SELECT t.name, COUNT(rt.repo_id) as usage_count
         FROM topics t
@@ -28,116 +31,130 @@ const GetPopularTags = async () => {
         ORDER BY usage_count DESC
         LIMIT 25;
     `, []);
-    return rows.map(row => row.name)
-};
 
-const GetProcessedRepositoriesCount = async () => {
+    return rows.map(row => row.name);
+  };
+
+
+  const GetProcessedRepositoriesCount = async () => {
     const rows = await executeQuery(`
         SELECT COUNT(*) AS total FROM repositories;
     `, []);
-    return parseInt(rows[0].total, 10);
-};
 
-const GetSupportedSources = async () => {
+    return parseInt(rows[0].total, 10);
+  };
+
+
+  const GetSupportedSources = async () => {
     const rows = await executeQuery(`
         SELECT name FROM data_sources;
     `, []);
-    return rows.map(row => row.name)
-};
+
+    return rows.map(row => row.name);
+  };
 
 
+  const GetFullRecommendations = async (
+    lang,
+    libs = [],
+    topics = [],
+    sources = [],
+    limit = 10,
+    offset = 0,
+    search = ""
+  ) => {
 
-const GetFullRecommendations = async (lang, libs = [], topics = [], sources = [], limit = 10, offset = 0, search = "") => {
     if (!lang) throw new Error("Language is required");
-    if (!sources || sources.length === 0) return []
+    if (!sources || sources.length === 0) return [];
 
     const langLower = lang.toLowerCase();
     const libsLower = libs.map(l => l.toLowerCase());
     const topicsLower = topics.map(t => t.toLowerCase());
     const sourcesLower = sources.map(s => s.toLowerCase());
 
-    let targetReposQuery = knex('repositories as r')
-        .select('r.id')
-        .join('languages as lang', 'r.language_id', 'lang.id')
-        .join('data_sources as ds', 'r.source_id', 'ds.id')
-        .where('lang.name', langLower)
-        .whereIn('ds.name', sourcesLower);
+    let targetReposQuery = knex("repositories as r")
+      .select("r.id")
+      .join("languages as lang", "r.language_id", "lang.id")
+      .join("data_sources as ds", "r.source_id", "ds.id")
+      .where("lang.name", langLower)
+      .whereIn("ds.name", sourcesLower);
 
     if (libsLower.length > 0) {
-        targetReposQuery = targetReposQuery.whereIn('r.id', function() {
-            this.select('rl.repo_id')
-                .from('repo_libraries as rl')
-                .join('libraries as l', 'rl.library_id', 'l.id')
-                .whereIn('l.name', libsLower)
-                .groupBy('rl.repo_id')
-                .havingRaw('COUNT(DISTINCT l.id) >= ?', [Math.floor(libsLower.length / 2.0)]);
-        });
+      targetReposQuery = targetReposQuery.whereIn("r.id", function () {
+        this.select("rl.repo_id")
+          .from("repo_libraries as rl")
+          .join("libraries as l", "rl.library_id", "l.id")
+          .whereIn("l.name", libsLower)
+          .groupBy("rl.repo_id")
+          .havingRaw("COUNT(DISTINCT l.id) >= ?", [Math.floor(libsLower.length / 2)]);
+      });
     }
 
     if (topicsLower.length > 0) {
-        targetReposQuery = targetReposQuery.whereIn('r.id', function() {
-            this.select('rt.repo_id')
-                .from('repo_topics as rt')
-                .join('topics as t', 'rt.topic_id', 't.id')
-                .whereIn('t.name', topicsLower)
-                .groupBy('rt.repo_id')
-                .havingRaw('COUNT(DISTINCT t.id) >= ?', [Math.floor(topicsLower.length / 2.0)])
-        });
+      targetReposQuery = targetReposQuery.whereIn("r.id", function () {
+        this.select("rt.repo_id")
+          .from("repo_topics as rt")
+          .join("topics as t", "rt.topic_id", "t.id")
+          .whereIn("t.name", topicsLower)
+          .groupBy("rt.repo_id")
+          .havingRaw("COUNT(DISTINCT t.id) >= ?", [Math.floor(topicsLower.length / 2)]);
+      });
     }
 
-    const query = knex('repo_libraries as rl')
-        .select(
-            'l.name',
-            'ls.final_score as trust_score',
-            knex.raw('COUNT(*) OVER() AS total_count') 
-        )
-        .count('rl.repo_id as co_occurrence_count')
-        .join('libraries as l', 'rl.library_id', 'l.id')
-        .join('target_repos', 'rl.repo_id', 'target_repos.id')
-        .leftJoin('library_scores as ls', 'l.id', 'ls.library_id')
-        .where('l.language_id', function() {
-            this.select('id').from('languages').where('name', langLower).limit(1);
-        })
-        .whereNotIn('l.name', libsLower);
+    const query = knex("repo_libraries as rl")
+      .select(
+        "l.name",
+        "ls.final_score as trust_score",
+        knex.raw("COUNT(*) OVER() AS total_count")
+      )
+      .count("rl.repo_id as co_occurrence_count")
+      .join("libraries as l", "rl.library_id", "l.id")
+      .join("target_repos", "rl.repo_id", "target_repos.id")
+      .leftJoin("library_scores as ls", "l.id", "ls.library_id")
+      .where("l.language_id", function () {
+        this.select("id").from("languages").where("name", langLower).limit(1);
+      })
+      .whereNotIn("l.name", libsLower);
 
     if (search && search.trim() !== "") {
-        query.where('l.name', 'ILIKE', `%${search.trim().toLowerCase()}%`);
+      query.where("l.name", "ILIKE", `%${search.trim().toLowerCase()}%`);
     }
 
     query
-        .groupBy('l.id', 'l.name', 'ls.final_score')
-        .orderBy([
-            { column: 'co_occurrence_count', order: 'desc' },
-            { column: 'ls.final_score', order: 'desc' }
-        ])
-        .limit(limit)
-        .offset(offset);
+      .groupBy("l.id", "l.name", "ls.final_score")
+      .orderBy([
+        { column: "co_occurrence_count", order: "desc" },
+        { column: "ls.final_score", order: "desc" }
+      ])
+      .limit(limit)
+      .offset(offset);
 
     const finalKnexQuery = knex
-        .with('target_repos', targetReposQuery)
-        .select('*')
-        .from(query);
-
+      .with("target_repos", targetReposQuery)
+      .select("*")
+      .from(query);
 
     const { sql, bindings } = finalKnexQuery.toSQL().toNative();
 
     const result = await executeQuery(sql, bindings);
 
     return {
-        data: result.map(row => ({
-            name: row.name,
-        })),
-        total: result.length > 0 ? parseInt(result[0].total_count) : 0
+      data: result.map(row => ({
+        name: row.name
+      })),
+      total: result.length > 0 ? parseInt(result[0].total_count) : 0
     };
-};
+  };
 
-async function GetTagHint(partial, selectedTags = []) {
+
+  const GetTagHint = async (partial, selectedTags = []) => {
     if (!partial) return [];
+
     const params = [
-        `%${partial.toLowerCase()}%`, 
-        `${partial.toLowerCase()}%`, 
-        selectedTags, 
-        6
+      `%${partial.toLowerCase()}%`,
+      `${partial.toLowerCase()}%`,
+      selectedTags,
+      6
     ];
 
     const sql = `
@@ -145,7 +162,7 @@ async function GetTagHint(partial, selectedTags = []) {
         FROM topics t
         LEFT JOIN repo_topics rt ON t.id = rt.topic_id
         WHERE t.name ILIKE $1
-          AND t.name != ALL($3)  -- Исключаем уже выбранные теги
+          AND t.name != ALL($3)
         GROUP BY t.id, t.name
         ORDER BY 
             (t.name ILIKE $2) DESC,
@@ -154,23 +171,30 @@ async function GetTagHint(partial, selectedTags = []) {
     `;
 
     return await executeQuery(sql, params);
-};
+  };
 
 
-async function GetRepositoriesByLib(library, language, sources, limit, offset) {
+  const GetRepositoriesByLib = async (
+    library,
+    language,
+    sources,
+    limit,
+    offset
+  ) => {
+
     if (!language) throw new Error("Language is required");
     if (!library) throw new Error("Library is required");
     if (!limit) throw new Error("Limit is required");
-    if (offset === undefined || offset === null) offset = 0
+    if (offset === undefined || offset === null) offset = 0;
     if (!sources) throw new Error("Sources are required");
-    if (sources.length == 0) return []
+    if (sources.length === 0) return [];
 
     const params = [
-        library,
-        language,
-        sources,
-        limit,
-        offset
+      library,
+      language,
+      sources,
+      limit,
+      offset
     ];
 
     const sql = `
@@ -192,32 +216,36 @@ async function GetRepositoriesByLib(library, language, sources, limit, offset) {
     `;
 
     return await executeQuery(sql, params);
-};
+  };
 
 
-async function GetLibraryMetadata(library, language, sources, relatedLimit = 5) {
+  const GetLibraryMetadata = async (
+    library,
+    language,
+    sources,
+    relatedLimit = 5
+  ) => {
+
     if (!language) throw new Error("Language is required");
     if (!library) throw new Error("Library is required");
     if (!sources) throw new Error("Sources are required");
     if (sources.length === 0) return null;
 
     const params = [
-        library.toLowerCase(),
-        language.toLowerCase(),
-        sources.map(s => s.toLowerCase()),
-        relatedLimit
+      library.toLowerCase(),
+      language.toLowerCase(),
+      sources.map(s => s.toLowerCase()),
+      relatedLimit
     ];
 
     const sql = `
         WITH target_lib AS (
-            -- Данные о самой библиотеке
             SELECT id FROM libraries 
             WHERE name = $1 
               AND language_id = (SELECT id FROM languages WHERE name = $2 LIMIT 1)
             LIMIT 1
         ),
         filtered_repos AS (
-            -- Репозитории, использующие библиотеку в рамках источников
             SELECT r.id, r.pushed_at
             FROM repo_libraries rl
             JOIN repositories r ON rl.repo_id = r.id
@@ -227,8 +255,7 @@ async function GetLibraryMetadata(library, language, sources, relatedLimit = 5) 
         )
         SELECT 
             COUNT(fr.id)::int as total,
-            
-            -- N ближайших библиотек (сопутствующий стек)
+
             COALESCE((
                 SELECT ARRAY_AGG(alt_l.name) FROM (
                     SELECT l_other.name, COUNT(*) as cnt
@@ -242,7 +269,6 @@ async function GetLibraryMetadata(library, language, sources, relatedLimit = 5) 
                 ) alt_l
             ), '{}') as related_libraries,
 
-            -- N ближайших тегов (контекст использования)
             COALESCE((
                 SELECT ARRAY_AGG(alt_t.name) FROM (
                     SELECT t_other.name, COUNT(*) as cnt
@@ -262,20 +288,22 @@ async function GetLibraryMetadata(library, language, sources, relatedLimit = 5) 
 
     const result = await executeQuery(sql, params);
 
-    if (!result[0] || result[0].total_mentions === 0) {
-        return null
-        /*return {
-            total_mentions: 0,
-            last_detected_pushed_at: null,
-            added_to_system_at: null,
-            associated_topics: [],
-            top_related_libraries: [],
-            top_related_topics: []
-        };*/
+    if (!result[0] || result[0].total === 0) {
+      return null;
     }
 
     return result[0];
-}
+  };
 
-export default { GetPopularTags, GetSupportedLanguages, GetProcessedRepositoriesCount, 
-    GetSupportedSources, GetFullRecommendations, GetTagHint, GetRepositoriesByLib, GetLibraryMetadata};
+
+  return {
+    GetPopularTags,
+    GetSupportedLanguages,
+    GetProcessedRepositoriesCount,
+    GetSupportedSources,
+    GetFullRecommendations,
+    GetTagHint,
+    GetRepositoriesByLib,
+    GetLibraryMetadata
+  };
+}

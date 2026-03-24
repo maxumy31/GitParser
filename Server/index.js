@@ -4,11 +4,13 @@ import fastifyFormbody from '@fastify/formbody';
 import ejs from 'ejs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import queries from './queries.js';
+import createApi from './queries.js';
+import executeQuery from './db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const fastify = Fastify({ logger: true });
 const isDev = true
+const queries = createApi(executeQuery);
 
 fastify.register(fastifyFormbody);
 fastify.register(fastifyView, {

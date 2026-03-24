@@ -76,7 +76,6 @@ class DatabaseManager:
             execute_values(cur, query, data)
 
     def update_final_scores(self):
-        """Обновление глобального рейтинга библиотек на основе накопленного веса репозиториев"""
         query = """
             INSERT INTO library_scores (library_id, final_score, updated_at)
             SELECT rl.library_id, SUM(r.calculated_weight), NOW()

@@ -1,13 +1,16 @@
 {
   "scripts": {
     "start": "node index.js",
-    "start_with_hotreload": "nodemon --legacy-watch index.js"
+    "start_with_hotreload": "nodemon --legacy-watch index.js",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
+    "test:coverage": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --coverage"
   },
   "type": "module",
   "dependencies": {
     "@fastify/swagger": "^9.6.1",
     "@fastify/swagger-ui": "^5.2.4",
     "fastify": "^5.6.2",
+    "jest": "^30.3.0",
     "mongodb": "^7.0.0",
     "nodemon": "^3.1.11",
     "octokit": "^5.0.5",

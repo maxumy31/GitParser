@@ -86,3 +86,6 @@ db_data/
 # --- Микросервисы ---
 **/debug.log
 **/logs/
+
+.md
+coverage

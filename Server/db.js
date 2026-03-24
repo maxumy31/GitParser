@@ -6,7 +6,6 @@ const pool = new Pool({
   user: process.env.PG_USER,
   password: process.env.PG_PASSWORD,
   database: process.env.PG_DB,
-  // Опционально: настройки пула
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -28,7 +27,7 @@ async function executeQuery(text, params = []) {
 
     //console.log(`Result = ${res.rows.map(r => JSON.stringify(r))}`)
     
-    return res.rows; // Возвращаем только данные
+    return res.rows;
   } catch (err) {
     console.error('[SQL Error]:', err.message);
     throw err;
